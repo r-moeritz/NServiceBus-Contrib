@@ -10,10 +10,14 @@ namespace NServiceBus.SagaPersisters.RavenDB.Tests
 
         public RavenDbSagaPersisterTests()
         {
-            var embeddableDocumentStore = new Raven.Client.Client.EmbeddableDocumentStore { RunInMemory = true };
-            embeddableDocumentStore.Initialize();
+            var documentStore = new Raven.Client.Client.EmbeddableDocumentStore { RunInMemory = true };
+            documentStore.Initialize();
 
-            IDocumentSessionFactory documentSessionFactory = new DocumentSessionFactory(embeddableDocumentStore);
+            //var documentStore = new Raven.Client.Document.DocumentStore {Url = "http://localhost:8080"};
+            //documentStore.Initialize();
+
+            //IDocumentSessionFactory documentSessionFactory = new DocumentSessionFactory(embeddableDocumentStore);
+            IDocumentSessionFactory documentSessionFactory = new DocumentSessionFactory(documentStore);
 
             SagaPersister = new SagaPersister
             {

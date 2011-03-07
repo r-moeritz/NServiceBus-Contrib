@@ -1,6 +1,6 @@
-﻿using log4net;
-using NServiceBus.ObjectBuilder;
+﻿using NServiceBus.ObjectBuilder;
 using Raven.Client;
+using Raven.Client.Client;
 using Raven.Client.Document;
 
 namespace NServiceBus
@@ -9,7 +9,15 @@ namespace NServiceBus
     {
         public static Configure EmbeddedRavenDBSagaPersister(this Configure config, string dataDirectory)
         {
-            return config;
+            if (!Sagas.Impl.Configure.SagasWereFound)
+                return config;
+
+            IDocumentStore documentStore = new EmbeddableDocumentStore
+                                               {
+                                                   DataDirectory = dataDirectory,
+                                               };
+
+            return config.ConfigureInternal(documentStore);            
         }
 
         public static Configure RavenDBSagaPersister(this Configure config)
@@ -23,15 +31,19 @@ namespace NServiceBus
                 return config;
 
             IDocumentStore documentStore = new DocumentStore { Url = url };
-            documentStore.Initialize();            
-          
+
+            return config.ConfigureInternal(documentStore);
+        }
+
+        private static Configure ConfigureInternal(this Configure config, IDocumentStore documentStore)
+        {
+            documentStore.Initialize();
+
             config.Configurer.RegisterSingleton<IDocumentStore>(documentStore);
             config.Configurer.ConfigureComponent<DocumentSessionFactory>(ComponentCallModelEnum.Singlecall);
             config.Configurer.ConfigureComponent<SagaPersister>(ComponentCallModelEnum.Singlecall);
 
             return config;
-        }
-
-        private static readonly ILog Logger = LogManager.GetLogger(typeof(ConfigureRavenDBSagaPersister));
+        }        
     }
 }

@@ -8,7 +8,7 @@ namespace NServiceBus
     {       
         public void Save(ISagaEntity saga)
         {
-            var session = DocumentSessionFactory.Current;
+            var session = DocumentSessionFactory.Current;           
             session.Store(saga);
         }
 
@@ -30,14 +30,15 @@ namespace NServiceBus
         }
 
         public T Get<T>(string property, object value) where T : ISagaEntity
-        {
-            var luceneQuery = string.Format("{0}:{1}", property, value);
+        {            
+            //return DocumentSessionFactory.Current.Advanced.LuceneQuery<T>().WhereEquals(property, value).SingleOrDefault();
 
-            return DocumentSessionFactory.Current
-                        .Advanced
-                        .LuceneQuery<T>()
-                        .Where(luceneQuery)
-                        .SingleOrDefault();
+            string luceneQuery = string.Format("{0}:{1}", property, value);
+
+            return DocumentSessionFactory
+                .Current
+                .Advanced
+                .LuceneQuery<T>().Where(luceneQuery).SingleOrDefault();            
         }
 
         public void Complete(ISagaEntity saga)
