@@ -55,7 +55,9 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
 
         private static readonly ILog Logger = LogManager.GetLogger(typeof(ServiceBrokerTransport));
 
-        private readonly Lazy<XmlSerializer> transportMessageSerializer = new Lazy<XmlSerializer>(CreateSerializer, true); 
+        private readonly Lazy<XmlSerializer> transportMessageSerializer = new Lazy<XmlSerializer>(CreateSerializer, true);
+
+        private readonly object serializerLock = new object();
         #endregion
 
         #region config info
@@ -287,8 +289,12 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
         TransportMessage ExtractXmlTransportMessage(Stream bodyStream)
         {
             var xs = transportMessageSerializer.Value;
-            var transportMessage = (TransportMessage)xs.Deserialize(bodyStream);
 
+            TransportMessage transportMessage;
+            lock (serializerLock)
+            {
+                transportMessage = (TransportMessage)xs.Deserialize(bodyStream);
+            }
             bodyStream.Position = 0;
 
 
@@ -321,7 +327,10 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
 
             using (var tempstream = new MemoryStream())
             {
-                xs.Serialize(tempstream, transportMessage);
+                lock (serializerLock)
+                {
+                    xs.Serialize(tempstream, transportMessage);
+                }
                 tempstream.Position = 0;
 
                 doc.Load(tempstream);
