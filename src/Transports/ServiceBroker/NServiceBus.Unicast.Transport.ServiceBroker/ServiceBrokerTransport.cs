@@ -54,6 +54,8 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
         private static SqlServiceBrokerTransactionManager transactionManager;
 
         private static readonly ILog Logger = LogManager.GetLogger(typeof(ServiceBrokerTransport));
+
+        private readonly Lazy<XmlSerializer> transportMessageSerializer = new Lazy<XmlSerializer>(CreateSerializer, true); 
         #endregion
 
         #region config info
@@ -284,7 +286,7 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
 
         TransportMessage ExtractXmlTransportMessage(Stream bodyStream)
         {
-            var xs = new XmlSerializer(typeof(TransportMessage));
+            var xs = transportMessageSerializer.Value;
             var transportMessage = (TransportMessage)xs.Deserialize(bodyStream);
 
             bodyStream.Position = 0;
@@ -314,12 +316,7 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
 
         void SerializeToXml(TransportMessage transportMessage, MemoryStream stream)
         {
-            var overrides = new XmlAttributeOverrides();
-            var attrs = new XmlAttributes { XmlIgnore = true };
-
-            overrides.Add(typeof(TransportMessage), "Messages", attrs);
-            var xs = new XmlSerializer(typeof(TransportMessage), overrides);
-
+            var xs = transportMessageSerializer.Value;
             var doc = new XmlDocument();
 
             using (var tempstream = new MemoryStream())
@@ -348,6 +345,17 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
             doc.Save(stream);
             stream.Position = 0;
 
+        }
+
+        private static XmlSerializer CreateSerializer()
+        {
+            var overrides = new XmlAttributeOverrides();
+            var attrs = new XmlAttributes { XmlIgnore = true };
+
+            overrides.Add(typeof(TransportMessage), "Messages", attrs);
+            var xs = new XmlSerializer(typeof(TransportMessage), overrides);
+
+            return xs;
         }
 
         private bool UseXmlTransportSeralization
