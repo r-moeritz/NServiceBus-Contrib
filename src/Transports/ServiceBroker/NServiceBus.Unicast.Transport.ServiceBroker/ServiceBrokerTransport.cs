@@ -55,9 +55,9 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
 
         private static readonly ILog Logger = LogManager.GetLogger(typeof(ServiceBrokerTransport));
 
-        private readonly Lazy<XmlSerializer> transportMessageSerializer = new Lazy<XmlSerializer>(CreateSerializer, true);
+        [ThreadStatic]
+        private static XmlSerializer transportMessageSerializer;
 
-        private readonly object serializerLock = new object();
         #endregion
 
         #region config info
@@ -288,16 +288,12 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
 
         TransportMessage ExtractXmlTransportMessage(Stream bodyStream)
         {
-            var xs = transportMessageSerializer.Value;
+            var xs = GetSerializer();
 
-            TransportMessage transportMessage;
-            lock (serializerLock)
-            {
-                transportMessage = (TransportMessage)xs.Deserialize(bodyStream);
-            }
+            var transportMessage = (TransportMessage)xs.Deserialize(bodyStream);
+            
             bodyStream.Position = 0;
-
-
+            
             var bodyDoc = new XmlDocument();
             bodyDoc.Load(bodyStream);
 
@@ -322,15 +318,13 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
 
         void SerializeToXml(TransportMessage transportMessage, MemoryStream stream)
         {
-            var xs = transportMessageSerializer.Value;
+            var xs = GetSerializer();
             var doc = new XmlDocument();
 
             using (var tempstream = new MemoryStream())
             {
-                lock (serializerLock)
-                {
-                    xs.Serialize(tempstream, transportMessage);
-                }
+                xs.Serialize(tempstream, transportMessage);
+               
                 tempstream.Position = 0;
 
                 doc.Load(tempstream);
@@ -356,13 +350,19 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
 
         }
 
-        private static XmlSerializer CreateSerializer()
+        private static XmlSerializer GetSerializer()
         {
+            if (transportMessageSerializer != null)
+            {
+                return transportMessageSerializer;
+            }
             var overrides = new XmlAttributeOverrides();
             var attrs = new XmlAttributes { XmlIgnore = true };
 
             overrides.Add(typeof(TransportMessage), "Messages", attrs);
             var xs = new XmlSerializer(typeof(TransportMessage), overrides);
+
+            transportMessageSerializer = xs;
 
             return xs;
         }
