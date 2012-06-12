@@ -1,13 +1,10 @@
-﻿using System;
-using System.Transactions;
-using NServiceBus.Config;
+﻿using NServiceBus.Config;
 using NServiceBus.ObjectBuilder;
 
 namespace NServiceBus.Unicast.Transport.ServiceBroker.Config
 {
     public class ConfigServiceBrokerTransport : Configure
     {
-
         /// <summary>
         /// Wraps the given configuration object but stores the same 
         /// builder and configurer properties.
@@ -18,15 +15,14 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker.Config
             Builder = config.Builder;
             Configurer = config.Configurer;
 
-            transportConfig = Configurer.ConfigureComponent<ServiceBrokerMessageReceiver>(ComponentCallModelEnum.Singleton);
+            transportConfig =
+                Configurer.ConfigureComponent<ServiceBrokerMessageReceiver>(DependencyLifecycle.SingleInstance);
 
             var cfg = GetConfigSection<ServiceBrokerTransportConfig>();
+            if (cfg == null) return;
 
-            if (cfg != null)
-            {
-                transportConfig.ConfigureProperty(t => t.InputQueue, cfg.InputQueue);
-                ConnectionString(cfg.ConnectionString);
-            }
+            transportConfig.ConfigureProperty(t => t.InputQueue, cfg.InputQueue);
+            ConnectionString(cfg.ConnectionString);
         }
 
         private IComponentConfig<ServiceBrokerMessageReceiver> transportConfig;
@@ -44,14 +40,10 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker.Config
             return this;
         }
 
-      
         public ConfigServiceBrokerTransport SecondsToWaitForMessage(int value)
         {
             transportConfig.ConfigureProperty(t => t.SecondsToWaitForMessage, value);
             return this;
         }
-
-      
-      
     }
 }
