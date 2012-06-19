@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -13,6 +13,8 @@
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -47,8 +49,7 @@
       <HintPath>..\packages\NServiceBus.Structuremap.3.2.2\lib\net40\NServiceBus.ObjectBuilder.StructureMap.dll</HintPath>
     </Reference>
     <Reference Include="ServiceBroker.Net, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\lib\servicebroker.net\ServiceBroker.Net.dll</HintPath>
+      <HintPath>..\packages\ServiceBroker.Net.1.0.0\lib\net40\ServiceBroker.Net.dll</HintPath>
     </Reference>
     <Reference Include="StructureMap">
       <HintPath>..\packages\structuremap.2.6.3\lib\StructureMap.dll</HintPath>
@@ -84,6 +85,7 @@
   <Target Name="BeforeBuild">
     <Exec Command="$(SolutionDir).nuget\NuGet.exe install $(ProjectDir)packages.config -o $(SolutionDir)Packages" />
   </Target>
+  <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- <Target Name="AfterBuild"> -->
   <!-- </Target> -->
 </Project>
