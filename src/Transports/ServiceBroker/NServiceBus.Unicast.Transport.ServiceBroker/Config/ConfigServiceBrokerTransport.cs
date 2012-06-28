@@ -5,6 +5,9 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker.Config
 {
     public class ConfigServiceBrokerTransport : Configure
     {
+        private IComponentConfig<ServiceBrokerMessageReceiver> _receiverConfig;
+        private IComponentConfig<ServiceBrokerMessageSender> _senderConfig;
+
         /// <summary>
         /// Wraps the given configuration object but stores the same 
         /// builder and configurer properties.
@@ -15,34 +18,42 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker.Config
             Builder = config.Builder;
             Configurer = config.Configurer;
 
-            transportConfig =
+            _receiverConfig =
                 Configurer.ConfigureComponent<ServiceBrokerMessageReceiver>(DependencyLifecycle.SingleInstance);
+            _senderConfig =
+                Configurer.ConfigureComponent<ServiceBrokerMessageSender>(DependencyLifecycle.SingleInstance);
 
             var cfg = GetConfigSection<ServiceBrokerTransportConfig>();
             if (cfg == null) return;
 
-            transportConfig.ConfigureProperty(t => t.InputQueue, cfg.InputQueue);
+            InputQueue(cfg.InputQueue);
             ConnectionString(cfg.ConnectionString);
+            SecondsToWaitForMessage(cfg.SecondsToWaitForMessage);
         }
 
-        private IComponentConfig<ServiceBrokerMessageReceiver> transportConfig;
-
-        public ConfigServiceBrokerTransport ConnectionString(string value)
+        public new IStartableBus CreateBus()
         {
-            transportConfig.ConfigureProperty(t => t.ConnectionString, value);
+            var bus = (UnicastBus) base.CreateBus();
+            bus.MessageSender = Builder.Build<ServiceBrokerMessageSender>();
+            return bus;
+        }
+
+        public ConfigServiceBrokerTransport InputQueue(string value)
+        {
+            _receiverConfig.ConfigureProperty(t => t.InputQueue, value);
             return this;
         }
 
-        public ConfigServiceBrokerTransport ErrorService(string value)
+        public ConfigServiceBrokerTransport ConnectionString(string value)
         {
-            //TODO
-            //transportConfig.ConfigureProperty(t => t.ErrorService, value);
+            _receiverConfig.ConfigureProperty(t => t.ConnectionString, value);
+            _senderConfig.ConfigureProperty(t => t.ConnectionString, value);
             return this;
         }
 
         public ConfigServiceBrokerTransport SecondsToWaitForMessage(int value)
         {
-            transportConfig.ConfigureProperty(t => t.SecondsToWaitForMessage, value);
+            _receiverConfig.ConfigureProperty(t => t.SecondsToWaitForMessage, value);
             return this;
         }
     }

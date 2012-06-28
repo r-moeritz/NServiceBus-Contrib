@@ -5,62 +5,64 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
 {
     public class SqlServiceBrokerTransactionManager
     {
-        private readonly string connectionString;
-        private SqlConnection connection;
-        private SqlTransaction transaction;
+        private readonly string _connectionString;
+        private SqlConnection _connection;
+        private SqlTransaction _transaction;
 
         public SqlServiceBrokerTransactionManager(string connectionString)
         {
-            this.connectionString = connectionString;
+            _connectionString = connectionString;
         }
 
         public void RunInTransaction(Action<SqlTransaction> callback)
         {
-            var closeConnection = connection == null;
+            var closeConnection = _connection == null;
 
-            if (connection == null)
+            if (_connection == null)
             {
-                connection = new SqlConnection(connectionString);
-                connection.Open();
+                _connection = new SqlConnection(_connectionString);
+                _connection.Open();
             }
 
             // Verify we still have a valid connection since we may not have opened it above, cleanup if we've lost our connection
-            if ((connection.State & System.Data.ConnectionState.Open) == 0)
+            if ((_connection.State & System.Data.ConnectionState.Open) == 0)
             {
-                if (transaction != null)
+                if (_transaction != null)
                 {
-                    transaction.Rollback();
-                    transaction.Dispose();
-                    transaction = null;
+                    _transaction.Rollback();
+                    _transaction.Dispose();
+                    _transaction = null;
                 }
-                connection.Dispose();
-                connection = null;
-                throw new ApplicationException("Connection to database failed, cleaing up");
+
+                _connection.Dispose();
+                _connection = null;
+
+                throw new ApplicationException("Connection to database failed, cleaning up...");
             }
 
-            var disposeTransaction = transaction == null;
+            var disposeTransaction = _transaction == null;
 
-            if (transaction == null)
+            if (_transaction == null)
             {
-                transaction = connection.BeginTransaction();
+                _transaction = _connection.BeginTransaction();
             }
 
             try
             {
                 // The callback might rollback the transaction, we always commit it
-                callback(transaction);
+                callback(_transaction);
 
                 if (disposeTransaction)
                 {
                     // We always commit our transactions, the callback might roll it back though
-                    transaction.Commit();
+                    _transaction.Commit();
                 }
             }
             catch
             {
                 if (disposeTransaction)
                 {
-                    transaction.Rollback();
+                    _transaction.Rollback();
                 }
                 throw;
             }
@@ -68,21 +70,21 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
             {
                 if (disposeTransaction)
                 {
-                    if (transaction != null)
+                    if (_transaction != null)
                     {
-                        transaction.Dispose();
+                        _transaction.Dispose();
                     }
-                    transaction = null;
+                    _transaction = null;
                 }
 
                 if (closeConnection)
                 {
-                    if (connection != null)
+                    if (_connection != null)
                     {
-                        connection.Close();
-                        connection.Dispose();
+                        _connection.Close();
+                        _connection.Dispose();
                     }
-                    connection = null;
+                    _connection = null;
                 }
             }
         }

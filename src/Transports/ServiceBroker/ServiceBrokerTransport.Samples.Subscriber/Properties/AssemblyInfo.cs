@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("ServiceBroker.NServiceBus.TestRunner")]
+[assembly: AssemblyTitle("ServiceBrokerTransport.Samples.Subscriber")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft")]
-[assembly: AssemblyProduct("ServiceBroker.NServiceBus.TestRunner")]
-[assembly: AssemblyCopyright("Copyright © Microsoft 2010")]
+[assembly: AssemblyCompany("Derivco")]
+[assembly: AssemblyProduct("ServiceBrokerTransport.Samples.Subscriber")]
+[assembly: AssemblyCopyright("Copyright © Derivco 2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("cd1ca8ab-9adf-46da-98a2-61c2d950dcd3")]
+[assembly: Guid("11d1329b-ca35-4a55-a1d7-b896d891c62f")]
 
 // Version information for an assembly consists of the following four values:
 //
