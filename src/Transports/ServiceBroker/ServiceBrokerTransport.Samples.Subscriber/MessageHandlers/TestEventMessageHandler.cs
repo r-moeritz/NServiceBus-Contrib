@@ -10,8 +10,8 @@ namespace ServiceBrokerTransport.Samples.Subscriber.MessageHandlers
 
         public void Handle(ITestEvent message)
         {
-            Logger.DebugFormat("Received message of type '{0}' with content: '{1}'",
-                               message.GetType(), message.Content);
+            Logger.DebugFormat("Received message of type 'ITestEvent' with content: '{0}'",
+                               message.Content);
         }
     }
 }

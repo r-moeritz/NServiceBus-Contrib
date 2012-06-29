@@ -1,8 +1,7 @@
 ﻿using NServiceBus;
 
-namespace ServiceBrokerTransport.Samples.Subscriber.Config
+namespace ServiceAQueue
 {
-    [EndpointName("ServiceAQueueSubscriber")]
     public class EndpointConfig : IConfigureThisEndpoint, AsA_Server, IWantCustomInitialization
     {
         public void Init()
@@ -13,9 +12,8 @@ namespace ServiceBrokerTransport.Samples.Subscriber.Config
                                           && type.Namespace.EndsWith(".Events")
                                           && type.Name.EndsWith("Event"))
                 .DefaultBuilder()
-                .UseInMemoryTimeoutPersister()
+                .DisableTimeoutManager()
                 .ServiceBrokerTransport()
-                .InputQueue("ServiceAQueue")
                 .ConnectionString(@"Server=.;Database=ServiceBroker_HelloWorld;Integrated Security=True");
         }
     }

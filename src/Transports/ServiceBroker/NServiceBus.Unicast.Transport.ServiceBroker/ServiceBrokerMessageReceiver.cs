@@ -1,8 +1,12 @@
-﻿using System.Data.SqlClient;
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
 using System.IO;
 using System.Text;
-using System.Xml;
+using System.Xml.Linq;
 using NServiceBus.Unicast.Queuing;
+using NServiceBus.Unicast.Transport.ServiceBroker.Util;
 using ServiceBroker.Net;
 
 namespace NServiceBus.Unicast.Transport.ServiceBroker
@@ -12,15 +16,15 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
         private SqlServiceBrokerTransactionManager _transactionManager;
 
         /// <summary>
+        /// The path to the queue the transport will read from.
+        /// </summary>
+        private string _inputQueue;
+
+        /// <summary>
         /// Sql connection string to the service hosting the service broker
         /// </summary>
         public string ConnectionString { get; set; }
-
-        /// <summary>
-        /// The path to the queue the transport will read from.
-        /// </summary>
-        public string InputQueue { get; set; }
-
+                
         /// <summary>
         /// Sets the maximum interval of time for when a thread thinks there is a message in the queue
         /// that it tries to receive, until it gives up.
@@ -41,24 +45,30 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
         {
             /*
              * TODO:
-             * We currently only retrieve the message body because TransportMessage can't 
-             * be deserialized by the XmlSerializer as it lacks a parameterless ctor.
+             * We currently only retrieve the message body because TransportMessage.ReplyToAddress
+             * is of type NServiceBus.Address which can't be serialized because it doesn't have a
+             * parameterless ctor.
              */
 
             bodyStream.Position = 0;
 
-            var bodyDoc = new XmlDocument();
-            bodyDoc.Load(bodyStream);
+            var bodyDoc = XDocument.Load(bodyStream);
 
-            var payLoad = bodyDoc.DocumentElement.SelectSingleNode("Body").FirstChild as XmlCDataSection;
+            var id = bodyDoc.SafeElement("TransportMessage").SafeElement("Id").Value;
+            var payload = (XCData) bodyDoc.SafeElement("TransportMessage").SafeElement("Body").FirstNode;
 
-            var transportMessage = new TransportMessage { Body = Encoding.Unicode.GetBytes(payLoad.Data) };
+            var transportMessage = new TransportMessage
+                                       {
+                                           Id = id,
+                                           Headers = new Dictionary<string, string>(),
+                                           Body = Encoding.Unicode.GetBytes(payload.Value)
+                                       };
             return transportMessage;
         }
 
-        private TransportMessage ReceiveFromQueue(SqlTransaction transaction)
+        private TransportMessage ReceiveFromQueue(IDbTransaction transaction)
         {
-            var message = ServiceBrokerWrapper.WaitAndReceive(transaction, InputQueue, SecondsToWaitForMessage*1000);
+            var message = ServiceBrokerWrapper.WaitAndReceive(transaction, _inputQueue, SecondsToWaitForMessage*1000);
 
             // No message? That's okay
             if (message == null)
@@ -81,6 +91,14 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
         {
             VerifyConnection();
 
+            if (address == null)
+                throw new ArgumentException("Input queue must be specified");
+
+            if (String.IsNullOrEmpty(address.Queue))
+                throw new ArgumentException("Input queue must not be null or an empty string");
+
+            _inputQueue = address.Queue;
+
             _transactionManager = new SqlServiceBrokerTransactionManager(ConnectionString);
         }
 
@@ -102,7 +120,7 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
             _transactionManager.RunInTransaction(
                 transaction =>
                     {
-                        count = ServiceBrokerWrapper.QueryMessageCount(transaction, InputQueue,
+                        count = ServiceBrokerWrapper.QueryMessageCount(transaction, _inputQueue,
                                                                        Constants.NServiceBusTransportMessage);
                     });
             return count;
