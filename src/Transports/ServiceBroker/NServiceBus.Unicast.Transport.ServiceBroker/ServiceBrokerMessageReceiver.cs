@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.IO;
 using System.Text;
 using System.Xml.Linq;
+using System.Xml.Serialization;
 using NServiceBus.Unicast.Queuing;
 using NServiceBus.Unicast.Transport.ServiceBroker.Util;
 using ServiceBroker.Net;
@@ -13,56 +13,53 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
 {
     public class ServiceBrokerMessageReceiver : IReceiveMessages
     {
-        private SqlServiceBrokerTransactionManager _transactionManager;
+        private ServiceBrokerTransactionManager _transactionManager;
 
         /// <summary>
-        /// The path to the queue the transport will read from.
+        /// The path to the SSB queue the receiver will read from.
         /// </summary>
         private string _inputQueue;
 
         /// <summary>
-        /// Sql connection string to the service hosting the service broker
+        /// The connection string used to connect to SSB.
         /// </summary>
         public string ConnectionString { get; set; }
-                
+
         /// <summary>
-        /// Sets the maximum interval of time for when a thread thinks there is a message in the queue
-        /// that it tries to receive, until it gives up.
+        /// Sets the maximum interval, in milliseconds, that a thread
+        /// waits to receive messages from the queue before giving up.
         /// 
-        /// Default value is 10.
+        /// The default value is 10.
         /// </summary>
         public int SecondsToWaitForMessage { get; set; }
 
-        private void VerifyConnection()
+        public ServiceBrokerMessageReceiver()
         {
-            using (var connection = new SqlConnection(ConnectionString))
-            {
-                connection.Open();
-            }
+            SecondsToWaitForMessage = 10;
         }
 
-        private static TransportMessage ExtractXmlTransportMessage(Stream bodyStream)
+        private static TransportMessage ExtractXmlTransportMessage(Stream stream)
         {
-            /*
-             * TODO:
-             * We currently only retrieve the message body because TransportMessage.ReplyToAddress
-             * is of type NServiceBus.Address which can't be serialized because it doesn't have a
-             * parameterless ctor.
-             */
+            var overrides = new XmlAttributeOverrides();
+            var attrs = new XmlAttributes {XmlIgnore = true};
 
-            bodyStream.Position = 0;
+            // Exclude non-serializable members
+            overrides.Add(typeof (TransportMessage), "Body", attrs);
+            overrides.Add(typeof (TransportMessage), "ReplyToAddress", attrs);
+            overrides.Add(typeof (TransportMessage), "Headers", attrs);
 
-            var bodyDoc = XDocument.Load(bodyStream);
+            stream.Position = 0;
 
-            var id = bodyDoc.SafeElement("TransportMessage").SafeElement("Id").Value;
-            var payload = (XCData) bodyDoc.SafeElement("TransportMessage").SafeElement("Body").FirstNode;
+            var xs = new XmlSerializer(typeof (TransportMessage), overrides);
+            var transportMessage = (TransportMessage) xs.Deserialize(stream);
+            transportMessage.Headers = new Dictionary<string, string>();
 
-            var transportMessage = new TransportMessage
-                                       {
-                                           Id = id,
-                                           Headers = new Dictionary<string, string>(),
-                                           Body = Encoding.Unicode.GetBytes(payload.Value)
-                                       };
+            stream.Position = 0;
+
+            var xdoc = XDocument.Load(stream);
+            var payload = (XCData) xdoc.SafeElement("TransportMessage").SafeElement("Body").FirstNode;
+            transportMessage.Body = Encoding.Unicode.GetBytes(payload.Value);
+
             return transportMessage;
         }
 
@@ -89,7 +86,8 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
 
         public void Init(Address address, bool transactional)
         {
-            VerifyConnection();
+            if (String.IsNullOrEmpty(ConnectionString))
+                throw new InvalidOperationException("Connection string must be provided");
 
             if (address == null)
                 throw new ArgumentException("Input queue must be specified");
@@ -97,9 +95,11 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
             if (String.IsNullOrEmpty(address.Queue))
                 throw new ArgumentException("Input queue must not be null or an empty string");
 
+            ConnectionString.TestConnection();
+
             _inputQueue = address.Queue;
 
-            _transactionManager = new SqlServiceBrokerTransactionManager(ConnectionString);
+            _transactionManager = new ServiceBrokerTransactionManager(ConnectionString);
         }
 
         public bool HasMessage()

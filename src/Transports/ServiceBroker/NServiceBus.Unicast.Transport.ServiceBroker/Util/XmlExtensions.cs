@@ -2,7 +2,7 @@
 
 namespace NServiceBus.Unicast.Transport.ServiceBroker.Util
 {
-    public static class XmlExtensions
+    internal static class XmlExtensions
     {
         public static XElement SafeElement(this XContainer container, string name)
         {

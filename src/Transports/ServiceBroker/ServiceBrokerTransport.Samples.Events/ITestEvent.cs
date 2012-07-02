@@ -1,4 +1,4 @@
-﻿namespace ServiceBrokerTransport.Samples.Subscriber.Events
+﻿namespace ServiceBrokerTransport.Samples.Events
 {
     public interface ITestEvent
     {

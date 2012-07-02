@@ -3,8 +3,10 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Xml;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 using NServiceBus.Unicast.Queuing;
+using NServiceBus.Unicast.Transport.ServiceBroker.Util;
 using ServiceBroker.Net;
 
 namespace NServiceBus.Unicast.Transport.ServiceBroker
@@ -12,37 +14,42 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
     public class ServiceBrokerMessageSender : ISendMessages
     {
         /// <summary>
-        /// Sql connection string to the service hosting the service broker
+        /// The name of the SSB service configured as the conversation initiator.
         /// </summary>
         public string ConnectionString { get; set; }
 
-        private static void SerializeToXml(TransportMessage transportMessage, Stream stream)
+        /// <summary>
+        /// SSB Service configured as the conversation initiator.
+        /// </summary>
+        public string InitiatorService { get; set; }        
+
+        private static string SerializeToXml(TransportMessage transportMessage)
         {
             var overrides = new XmlAttributeOverrides();
             var attrs = new XmlAttributes {XmlIgnore = true};
 
-            overrides.Add(typeof (TransportMessage), "Messages", attrs);
+            // Exclude non-serializable members
+            overrides.Add(typeof (TransportMessage), "Body", attrs);
+            overrides.Add(typeof (TransportMessage), "ReplyToAddress", attrs);
+            overrides.Add(typeof (TransportMessage), "Headers", attrs);
+            
+            var sb = new StringBuilder();
+            var xws = new XmlWriterSettings { Encoding = Encoding.Unicode };
+            var xw = XmlWriter.Create(sb, xws);
             var xs = new XmlSerializer(typeof (TransportMessage), overrides);
+            xs.Serialize(xw, transportMessage);
 
-            var doc = new XmlDocument();
+            var xdoc = XDocument.Parse(sb.ToString());
+            var body = new XElement("Body");
+            var cdata = new XCData(Encoding.UTF8.GetString(transportMessage.Body));
+            body.Add(cdata);
+            xdoc.SafeElement("TransportMessage").Add(body);
 
-            using (var tempstream = new MemoryStream())
-            {
-                xs.Serialize(tempstream, transportMessage);
-                tempstream.Position = 0;
+            sb.Clear();
+            var sw = new StringWriter(sb);
+            xdoc.Save(sw);
 
-                doc.Load(tempstream);
-            }
-
-            var bodyElement = doc.CreateElement("Body");
-
-            var data = Encoding.Unicode.GetString(transportMessage.Body);
-
-            bodyElement.AppendChild(doc.CreateCDataSection(data));
-            doc.DocumentElement.AppendChild(bodyElement);
-
-            doc.Save(stream);
-            stream.Position = 0;
+            return sb.ToString();
         }
 
         /// <summary>
@@ -52,7 +59,11 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
         /// <param name="destination">The address of the destination to send the message to.</param>
         public void Send(TransportMessage m, Address destination)
         {
-            new SqlServiceBrokerTransactionManager(ConnectionString).RunInTransaction(
+            string initiator;
+            if (!m.Headers.TryGetValue(ServiceBrokerTransportHeaderKeys.InitiatorService, out initiator))
+                initiator = InitiatorService;
+
+            new ServiceBrokerTransactionManager(ConnectionString).RunInTransaction(
                 transaction =>
                     {
                         // Always begin and end a conversation to simulate a monologe
@@ -60,7 +71,7 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
                             ServiceBrokerWrapper.
                                 BeginConversation(
                                     transaction,
-                                    m.ReplyToAddress.ToString(),
+                                    initiator,
                                     destination.ToString(),
                                     Constants.NServiceBusTransportMessageContract);
 
@@ -70,19 +81,17 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
                         // Set the time from the source machine when the message was sent
                         m.SetHeader("TimeSent", DateTime.UtcNow.ToString(CultureInfo.InvariantCulture));
 
-                        using (var stream = new MemoryStream())
-                        {
-                            // Serialize the transport message
-                            SerializeToXml(m, stream);
+                        // Serialize the transport message
+                        var xml = SerializeToXml(m);
 
-                            ServiceBrokerWrapper.Send(
-                                transaction,
-                                conversationHandle,
-                                Constants.NServiceBusTransportMessage,
-                                stream.GetBuffer());
-                        }
-                        ServiceBrokerWrapper.EndConversation
-                            (transaction, conversationHandle);
+                        ServiceBrokerWrapper.Send(
+                            transaction,
+                            conversationHandle,
+                            Constants.NServiceBusTransportMessage,
+                            Encoding.Unicode.GetBytes(xml));
+
+                        ServiceBrokerWrapper.EndConversation(transaction,
+                                                             conversationHandle);
                     });
         }
     }

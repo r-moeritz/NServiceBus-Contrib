@@ -3,13 +3,13 @@ using System.Data.SqlClient;
 
 namespace NServiceBus.Unicast.Transport.ServiceBroker
 {
-    public class SqlServiceBrokerTransactionManager
+    public class ServiceBrokerTransactionManager
     {
         private readonly string _connectionString;
         private SqlConnection _connection;
         private SqlTransaction _transaction;
 
-        public SqlServiceBrokerTransactionManager(string connectionString)
+        public ServiceBrokerTransactionManager(string connectionString)
         {
             _connectionString = connectionString;
         }

@@ -1,19 +1,14 @@
 ﻿using NServiceBus.Config;
 using NServiceBus.ObjectBuilder;
-using NServiceBus.Unicast.Queuing.Msmq;
 
 namespace NServiceBus.Unicast.Transport.ServiceBroker.Config
 {
     public class ConfigServiceBrokerTransport : Configure
     {
         private IComponentConfig<ServiceBrokerMessageReceiver> _receiverConfig;
-        private IComponentConfig<MsmqMessageSender> _senderConfig;
+        private IComponentConfig<ServiceBrokerMessageSender> _senderConfig;
+        private IComponentConfig<ServiceBrokerFailureManager> _failureConfig;
 
-        /// <summary>
-        /// Wraps the given configuration object but stores the same 
-        /// builder and configurer properties.
-        /// </summary>
-        /// <param name="config"></param>
         public void Configure(Configure config)
         {
             Builder = config.Builder;
@@ -22,24 +17,36 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker.Config
             _receiverConfig =
                 Configurer.ConfigureComponent<ServiceBrokerMessageReceiver>(DependencyLifecycle.SingleInstance);
             _senderConfig =
-                Configurer.ConfigureComponent<MsmqMessageSender>(DependencyLifecycle.SingleInstance);
+                Configurer.ConfigureComponent<ServiceBrokerMessageSender>(DependencyLifecycle.SingleInstance);
+            _failureConfig =
+                Configurer.ConfigureComponent<ServiceBrokerFailureManager>(DependencyLifecycle.SingleInstance);
 
-            var ssbConfig = GetConfigSection<ServiceBrokerTransportConfig>();
-            if (ssbConfig == null) return;
+            var cfg = GetConfigSection<ServiceBrokerTransportConfig>();
+            if (cfg == null) return;
 
-            ConnectionString(ssbConfig.ConnectionString);
-            SecondsToWaitForMessage(ssbConfig.SecondsToWaitForMessage);
+            ConnectionString(cfg.ConnectionString);
+            SecondsToWaitForMessage(cfg.SecondsToWaitForMessage);
+            InitiatorService(cfg.InitiatorService);
         }
 
         public ConfigServiceBrokerTransport ConnectionString(string value)
         {
             _receiverConfig.ConfigureProperty(t => t.ConnectionString, value);
+            _senderConfig.ConfigureProperty(t => t.ConnectionString, value);
+            _failureConfig.ConfigureProperty(t => t.ConnectionString, value);
             return this;
         }
 
         public ConfigServiceBrokerTransport SecondsToWaitForMessage(int value)
         {
             _receiverConfig.ConfigureProperty(t => t.SecondsToWaitForMessage, value);
+            return this;
+        }
+
+        public ConfigServiceBrokerTransport InitiatorService(string value)
+        {
+            _senderConfig.ConfigureProperty(t => t.InitiatorService, value);
+            _failureConfig.ConfigureProperty(t => t.InitiatorService, value);
             return this;
         }
     }

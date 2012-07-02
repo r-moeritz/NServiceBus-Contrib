@@ -1,5 +1,5 @@
 ﻿using NServiceBus;
-using ServiceBrokerTransport.Samples.Subscriber.Events;
+using ServiceBrokerTransport.Samples.Events;
 using log4net;
 
 namespace ServiceBrokerTransport.Samples.Subscriber.MessageHandlers
