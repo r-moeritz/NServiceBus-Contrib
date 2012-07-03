@@ -72,8 +72,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(SolutionDir).nuget\NuGet.targets" />
-  <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <PropertyGroup>
     <PostBuildEvent>mkdir "$(TargetDir)nuget\lib\net40"
 copy "$(ProjectDir)*.nuspec" "$(TargetDir)nuget"
@@ -84,4 +82,5 @@ copy "$(TargetPath)" "$(TargetDir)nuget\lib\net40"
     <PreBuildEvent>rd /s /q "$(TargetDir)nuget"
 del /f /q "$(TargetDir)*.nupkg"</PreBuildEvent>
   </PropertyGroup>
+  <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
 </Project>
