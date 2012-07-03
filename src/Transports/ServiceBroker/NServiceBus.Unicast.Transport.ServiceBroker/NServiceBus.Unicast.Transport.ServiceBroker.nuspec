@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>NServiceBus.Unicast.Transport.ServiceBroker</id>
+    <version>3.2.4</version>
+    <authors>Joseph Daigle</authors>
+    <owners>Ralph Möritz</owners>
+    <licenseUrl>https://raw.github.com/NServiceBus/NServiceBus-Contrib/master/License.txt</licenseUrl>
+    <projectUrl>https://github.com/NServiceBus/NServiceBus-Contrib</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>NServiceBus transport for SQL Server Service Broker. Part of NServiceBus-Contrib.</description>
+    <releaseNotes />
+    <copyright>Copyright 2012 Joseph Daigle</copyright>
+    <tags>SSB ServiceBroker ITransport NServiceBus NServiceBus-Contrib .NET</tags>
+    <dependencies>
+      <dependency id="NServiceBus" version="[3.2.4, 3.3.0)" />
+      <dependency id="ServiceBroker.Net" version="1.0.0" />
+    </dependencies>
+  </metadata>
+</package>

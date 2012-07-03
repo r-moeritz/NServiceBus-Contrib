@@ -3,19 +3,23 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.Unicast.Transport.ServiceBroker", "NServiceBus.Unicast.Transport.ServiceBroker\NServiceBus.Unicast.Transport.ServiceBroker.csproj", "{79A15565-916C-41A0-BD86-AC806838D8CB}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{8F07375A-51C8-4B8A-B71C-ECB9B31ED775}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{20421C87-4B05-486F-BC7C-C2DA9B2F6B78}"
 	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
 		.nuget\NuGet.exe = .nuget\NuGet.exe
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{C7EADE6A-4252-4353-8102-9A5153679E4A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{0B1AA09D-2089-4DA6-B41E-BD44FAC6094F}"
+	ProjectSection(SolutionItems) = preProject
+		Samples\Setup.sql = Samples\Setup.sql
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceBrokerTransport.Samples.Subscriber", "ServiceBrokerTransport.Samples.Subscriber\ServiceBrokerTransport.Samples.Subscriber.csproj", "{C7D22CE8-498E-46B7-A12C-EDA21561B2CD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceBrokerTransport.Samples.Events", "Samples\ServiceBrokerTransport.Samples.Events\ServiceBrokerTransport.Samples.Events.csproj", "{8E5C08E2-DF0C-4E10-A106-4DC0FCAF5F3F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceBrokerTransport.Samples.Publisher", "ServiceBrokerTransport.Samples.Publisher\ServiceBrokerTransport.Samples.Publisher.csproj", "{B665A82F-0022-4A22-8504-A7486847A18A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceBrokerTransport.Samples.Publisher", "Samples\ServiceBrokerTransport.Samples.Publisher\ServiceBrokerTransport.Samples.Publisher.csproj", "{B665A82F-0022-4A22-8504-A7486847A18A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceBrokerTransport.Samples.Events", "ServiceBrokerTransport.Samples.Events\ServiceBrokerTransport.Samples.Events.csproj", "{8E5C08E2-DF0C-4E10-A106-4DC0FCAF5F3F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceBrokerTransport.Samples.Subscriber", "Samples\ServiceBrokerTransport.Samples.Subscriber\ServiceBrokerTransport.Samples.Subscriber.csproj", "{C7D22CE8-498E-46B7-A12C-EDA21561B2CD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,26 +41,6 @@ Global
 		{79A15565-916C-41A0-BD86-AC806838D8CB}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{79A15565-916C-41A0-BD86-AC806838D8CB}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{79A15565-916C-41A0-BD86-AC806838D8CB}.Release|x86.ActiveCfg = Release|Any CPU
-		{C7D22CE8-498E-46B7-A12C-EDA21561B2CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C7D22CE8-498E-46B7-A12C-EDA21561B2CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C7D22CE8-498E-46B7-A12C-EDA21561B2CD}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{C7D22CE8-498E-46B7-A12C-EDA21561B2CD}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{C7D22CE8-498E-46B7-A12C-EDA21561B2CD}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{C7D22CE8-498E-46B7-A12C-EDA21561B2CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C7D22CE8-498E-46B7-A12C-EDA21561B2CD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C7D22CE8-498E-46B7-A12C-EDA21561B2CD}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{C7D22CE8-498E-46B7-A12C-EDA21561B2CD}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{C7D22CE8-498E-46B7-A12C-EDA21561B2CD}.Release|x86.ActiveCfg = Release|Any CPU
-		{B665A82F-0022-4A22-8504-A7486847A18A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B665A82F-0022-4A22-8504-A7486847A18A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B665A82F-0022-4A22-8504-A7486847A18A}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{B665A82F-0022-4A22-8504-A7486847A18A}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{B665A82F-0022-4A22-8504-A7486847A18A}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{B665A82F-0022-4A22-8504-A7486847A18A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B665A82F-0022-4A22-8504-A7486847A18A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B665A82F-0022-4A22-8504-A7486847A18A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{B665A82F-0022-4A22-8504-A7486847A18A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{B665A82F-0022-4A22-8504-A7486847A18A}.Release|x86.ActiveCfg = Release|Any CPU
 		{8E5C08E2-DF0C-4E10-A106-4DC0FCAF5F3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8E5C08E2-DF0C-4E10-A106-4DC0FCAF5F3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E5C08E2-DF0C-4E10-A106-4DC0FCAF5F3F}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -67,13 +51,33 @@ Global
 		{8E5C08E2-DF0C-4E10-A106-4DC0FCAF5F3F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{8E5C08E2-DF0C-4E10-A106-4DC0FCAF5F3F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{8E5C08E2-DF0C-4E10-A106-4DC0FCAF5F3F}.Release|x86.ActiveCfg = Release|Any CPU
+		{B665A82F-0022-4A22-8504-A7486847A18A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B665A82F-0022-4A22-8504-A7486847A18A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B665A82F-0022-4A22-8504-A7486847A18A}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{B665A82F-0022-4A22-8504-A7486847A18A}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{B665A82F-0022-4A22-8504-A7486847A18A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B665A82F-0022-4A22-8504-A7486847A18A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B665A82F-0022-4A22-8504-A7486847A18A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B665A82F-0022-4A22-8504-A7486847A18A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{B665A82F-0022-4A22-8504-A7486847A18A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{B665A82F-0022-4A22-8504-A7486847A18A}.Release|x86.ActiveCfg = Release|Any CPU
+		{C7D22CE8-498E-46B7-A12C-EDA21561B2CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7D22CE8-498E-46B7-A12C-EDA21561B2CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7D22CE8-498E-46B7-A12C-EDA21561B2CD}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{C7D22CE8-498E-46B7-A12C-EDA21561B2CD}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{C7D22CE8-498E-46B7-A12C-EDA21561B2CD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C7D22CE8-498E-46B7-A12C-EDA21561B2CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7D22CE8-498E-46B7-A12C-EDA21561B2CD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7D22CE8-498E-46B7-A12C-EDA21561B2CD}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{C7D22CE8-498E-46B7-A12C-EDA21561B2CD}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{C7D22CE8-498E-46B7-A12C-EDA21561B2CD}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{C7D22CE8-498E-46B7-A12C-EDA21561B2CD} = {C7EADE6A-4252-4353-8102-9A5153679E4A}
-		{B665A82F-0022-4A22-8504-A7486847A18A} = {C7EADE6A-4252-4353-8102-9A5153679E4A}
-		{8E5C08E2-DF0C-4E10-A106-4DC0FCAF5F3F} = {C7EADE6A-4252-4353-8102-9A5153679E4A}
+		{8E5C08E2-DF0C-4E10-A106-4DC0FCAF5F3F} = {0B1AA09D-2089-4DA6-B41E-BD44FAC6094F}
+		{B665A82F-0022-4A22-8504-A7486847A18A} = {0B1AA09D-2089-4DA6-B41E-BD44FAC6094F}
+		{C7D22CE8-498E-46B7-A12C-EDA21561B2CD} = {0B1AA09D-2089-4DA6-B41E-BD44FAC6094F}
 	EndGlobalSection
 EndGlobal
