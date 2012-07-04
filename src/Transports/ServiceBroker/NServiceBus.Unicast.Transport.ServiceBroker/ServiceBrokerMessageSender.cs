@@ -79,7 +79,8 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
                         m.Id = conversationHandle.ToString();
 
                         // Set the time from the source machine when the message was sent
-                        m.SetHeader("TimeSent", DateTime.UtcNow.ToString(CultureInfo.InvariantCulture));
+                        m.SetHeader(ServiceBrokerTransportHeaderKeys.UtcTimeSent, 
+                            DateTime.UtcNow.ToString(CultureInfo.InvariantCulture));
 
                         // Serialize the transport message
                         var xml = SerializeToXml(m);

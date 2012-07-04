@@ -2,6 +2,8 @@
 {
     public static class ServiceBrokerTransportHeaderKeys
     {
-        public const string InitiatorService = "SSB_InitiatorService";
+        public const string InitiatorService = "ServiceBroker.InitiatorService";
+        public const string UtcTimeSent      = "ServiceBroker.UtcTimeSent";
+        public const string UtcTimeReceived  = "ServiceBroker.UtcTimeReceived";
     }
 }

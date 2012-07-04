@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Xml.Linq;
@@ -38,8 +39,10 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
             SecondsToWaitForMessage = 10;
         }
 
-        private static TransportMessage ExtractXmlTransportMessage(Stream stream)
+        private static TransportMessage DeserializeTransportMessage(Stream stream)
         {
+            stream.Position = 0;
+
             var overrides = new XmlAttributeOverrides();
             var attrs = new XmlAttributes {XmlIgnore = true};
 
@@ -48,16 +51,26 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
             overrides.Add(typeof (TransportMessage), "ReplyToAddress", attrs);
             overrides.Add(typeof (TransportMessage), "Headers", attrs);
 
-            stream.Position = 0;
-
             var xs = new XmlSerializer(typeof (TransportMessage), overrides);
             var transportMessage = (TransportMessage) xs.Deserialize(stream);
-            transportMessage.Headers = new Dictionary<string, string>();
+            return transportMessage;
+        }
 
+        private static TransportMessage ExtractXmlTransportMessage(Stream stream)
+        {
             stream.Position = 0;
 
             var xdoc = XDocument.Load(stream);
             var payload = (XCData) xdoc.SafeElement("TransportMessage").SafeElement("Body").FirstNode;
+
+            var transportMessage = DeserializeTransportMessage(stream);
+            transportMessage.Headers = new Dictionary<string, string>
+                                           {
+                                               {
+                                                   ServiceBrokerTransportHeaderKeys.UtcTimeReceived,
+                                                   DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)
+                                               }
+                                           };
             transportMessage.Body = Encoding.Unicode.GetBytes(payload.Value);
 
             return transportMessage;
