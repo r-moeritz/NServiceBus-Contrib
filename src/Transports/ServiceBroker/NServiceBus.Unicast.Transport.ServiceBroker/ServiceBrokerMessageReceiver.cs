@@ -22,23 +22,34 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
         private string _inputQueue;
 
         /// <summary>
+        /// The default number of seconds to wait for a message
+        /// to appear in the input queue before giving up. This
+        /// value will be used if none is configured.
+        /// </summary>
+        private const int _defaultSecondsToWaitForMessage = 10;
+
+        /// <summary>
         /// The connection string used to connect to SSB.
         /// </summary>
         public string ConnectionString { get; set; }
 
         /// <summary>
-        /// Sets the maximum interval, in milliseconds, that a thread
-        /// waits to receive messages from the queue before giving up.
-        /// 
-        /// The default value is 10.
+        /// Sets the maximum interval, in seconds, that a thread waits 
+        /// to receive messages from the input queue before giving up.
         /// </summary>
-        public int SecondsToWaitForMessage { get; set; }
-
-        public ServiceBrokerMessageReceiver()
+        private int? _secondsToWaitForMessage;
+        public int SecondsToWaitForMessage
         {
-            SecondsToWaitForMessage = 10;
+          get
+          {
+            return _secondsToWaitForMessage ?? _defaultSecondsToWaitForMessage;
+          }
+          set
+          {
+            _secondsToWaitForMessage = value;
+          }
         }
-
+        
         private static TransportMessage DeserializeTransportMessage(Stream stream)
         {
             stream.Position = 0;
