@@ -14,19 +14,19 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
 {
     public class ServiceBrokerMessageReceiver : IReceiveMessages
     {
+        /// <summary>
+        /// The default number of seconds to wait for a message
+        /// to appear in the input queue before giving up. This
+        /// value will be used if none is configured.
+        /// </summary>
+        private const int DefaultSecondsToWaitForMessage = 10;
+
         private ServiceBrokerTransactionManager _transactionManager;
 
         /// <summary>
         /// The path to the SSB queue the receiver will read from.
         /// </summary>
         private string _inputQueue;
-
-        /// <summary>
-        /// The default number of seconds to wait for a message
-        /// to appear in the input queue before giving up. This
-        /// value will be used if none is configured.
-        /// </summary>
-        private const int _defaultSecondsToWaitForMessage = 10;
 
         /// <summary>
         /// The connection string used to connect to SSB.
@@ -42,7 +42,7 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
         {
           get
           {
-            return _secondsToWaitForMessage ?? _defaultSecondsToWaitForMessage;
+            return _secondsToWaitForMessage ?? DefaultSecondsToWaitForMessage;
           }
           set
           {
