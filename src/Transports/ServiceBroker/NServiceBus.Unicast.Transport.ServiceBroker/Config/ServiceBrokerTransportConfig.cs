@@ -11,10 +11,23 @@ namespace NServiceBus.Config
         /// The default value is 10.
         /// </summary>
         [ConfigurationProperty("SecondsToWaitForMessage", IsRequired = false)]
-        public int SecondsToWaitForMessage
+        public int? SecondsToWaitForMessage
         {
-            get { return (int) this["SecondsToWaitForMessage"]; }
+            get { return (int?) this["SecondsToWaitForMessage"]; }
             set { this["SecondsToWaitForMessage"] = value; }
+        }
+
+        /// <summary>
+        /// Sets the maximum number of messages to be fetched in a
+        /// RECEIVE statement.
+        /// 
+        /// The default value is 50.
+        /// </summary>
+        [ConfigurationProperty("ReceiveBatchSize", IsRequired = false)]
+        public int? ReceiveBatchSize
+        {
+            get { return (int?) this["ReceiveBatchSize"]; }
+            set { this["ReceiveBatchSize"] = value; }
         }
 
         /// <summary>
