@@ -34,7 +34,7 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
                         var handle = ServiceBrokerWrapper.BeginConversation(xaction, initiator, _errorService,
                                                                             Constants.NServiceBusTransportMessageContract);
                         ServiceBrokerWrapper.Send(xaction, handle, Constants.NServiceBusTransportMessage, message.Body);
-                        ServiceBrokerWrapper.EndConversation(xaction, handle);
+                        ServiceBrokerWrapper.ForceEndConversation(xaction, handle);
                     });
         }
 

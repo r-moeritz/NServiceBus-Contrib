@@ -91,8 +91,8 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
                             Constants.NServiceBusTransportMessage,
                             Encoding.Unicode.GetBytes(xml));
 
-                        ServiceBrokerWrapper.EndConversation(transaction,
-                                                             conversationHandle);
+                        ServiceBrokerWrapper.ForceEndConversation(transaction,
+                                                                  conversationHandle);
                     });
         }
     }

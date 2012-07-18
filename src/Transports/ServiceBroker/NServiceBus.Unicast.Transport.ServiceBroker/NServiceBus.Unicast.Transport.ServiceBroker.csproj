@@ -47,7 +47,7 @@
       <HintPath>..\packages\NServiceBus.3.2.4\lib\net40\NServiceBus.Core.dll</HintPath>
     </Reference>
     <Reference Include="ServiceBroker.Net">
-      <HintPath>..\packages\ServiceBroker.Net.1.0.0\lib\net40\ServiceBroker.Net.dll</HintPath>
+      <HintPath>..\packages\ServiceBroker.Net.1.1.0\lib\net40\ServiceBroker.Net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
@@ -71,13 +71,12 @@
     <Compile Include="Util\XmlExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="NServiceBus.Unicast.Transport.ServiceBroker.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>mkdir "$(TargetDir)nuget\lib\net40"
-copy "$(ProjectDir)*.nuspec" "$(TargetDir)nuget"
+copy "$(SolutionDir)*.nuspec" "$(TargetDir)nuget"
 copy "$(TargetPath)" "$(TargetDir)nuget\lib\net40"
 "$(SolutionDir).nuget\nuget.exe" pack "$(TargetDir)nuget\NServiceBus.Unicast.Transport.ServiceBroker.nuspec"</PostBuildEvent>
   </PropertyGroup>

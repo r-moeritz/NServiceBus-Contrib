@@ -67,24 +67,26 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
         private static TransportMessage ExtractTransportMessage(IEnumerable<Message> messages)
         {
             var tspMessages = messages.Where(m => m.MessageTypeName == Constants.NServiceBusTransportMessage).ToArray();
-            Logger.DebugFormat("Got {0} messages from SSB. Going to extract into 1 transport message.", tspMessages.Length);
+            if (tspMessages.Length == 0) return null;
 
-            var messagesDoc = new XDocument(new XElement("Messages"));
-            foreach (var msg in tspMessages)
+            var tempCData = (XCData) XDocument.Load(tspMessages.First().BodyStream)
+                                         .SafeElement("TransportMessage")
+                                         .SafeElement("Body")
+                                         .FirstNode;
+            var ns = XElement.Parse(tempCData.Value).GetDefaultNamespace();
+            var root = new XElement(ns.GetName("Messages"));
+            
+            foreach (var msgElement in tspMessages.Select(
+                msg => XDocument.Load(msg.BodyStream))
+                .Select(doc => (XCData) doc.SafeElement("TransportMessage")
+                                            .SafeElement("Body").FirstNode)
+                .Select(cdata => XElement.Parse(cdata.Value))
+                .SelectMany(container => container.Elements()))
             {
-                var doc = XDocument.Load(msg.BodyStream);
-                var cdata = (XCData) doc.SafeElement("TransportMessage").SafeElement("Body").FirstNode;
-
-                var messagesElement = XElement.Parse(cdata.Value);
-                var msgElement = messagesElement.FirstNode;
-
-                messagesDoc.SafeElement("Messages").Add(msgElement);
+                root.Add(msgElement);
             }
 
-            var messagesXml = messagesDoc.SafeElement("Messages").ToString();
-            Logger.Debug(messagesXml);
-
-            var messagesCData = new XCData(messagesXml);
+            Logger.Debug(Environment.NewLine + root);
             var transportMessageId = Guid.NewGuid().ToString();
 
             return new TransportMessage
@@ -98,18 +100,28 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
                                                  DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)
                                              }
                                          },
-                           Body = Encoding.Unicode.GetBytes(messagesCData.Value)
+                           Body = Encoding.Unicode.GetBytes(root.ToString())
                        };
         }
 
-        private TransportMessage ReceiveFromQueue(IDbTransaction transaction)
+        private void EndConversation(IDbTransaction transaction, Guid conversationHandle)
         {
-            var ssbMessages = ServiceBrokerWrapper.WaitAndReceive(transaction, _inputQueue, 
-                SecondsToWaitForMessage.GetValueOrDefault()*1000, ReceiveBatchSize.GetValueOrDefault());
-            if (ssbMessages == null) return null;
+            ServiceBrokerWrapper.EndConversation(transaction, conversationHandle, _inputQueue, false);
+        }
 
+        private Tuple<Guid, TransportMessage> ReceiveFromQueue(IDbTransaction transaction)
+        {
+            var ssbMessages = ServiceBrokerWrapper.WaitAndReceive(transaction, _inputQueue,
+                                                                  SecondsToWaitForMessage.GetValueOrDefault()*1000,
+                                                                  ReceiveBatchSize.GetValueOrDefault()).ToArray();
+            if (ssbMessages.Length == 0) return null;
+
+            var conversationHandle = ssbMessages.First().ConversationHandle;
             var transportMessage = ExtractTransportMessage(ssbMessages);
-            return transportMessage;
+
+            return (transportMessage == null)
+                       ? null
+                       : Tuple.Create(conversationHandle, transportMessage);
         }
 
         public void Init(Address address, bool transactional)
@@ -135,10 +147,23 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
 
         public TransportMessage Receive()
         {
-            TransportMessage message = null;
-            new ServiceBrokerTransactionManager(ConnectionString)
-                .RunInTransaction(x => { message = ReceiveFromQueue(x); });
-            return message;
+            Tuple<Guid, TransportMessage> tuple = null;
+
+            var xman = new ServiceBrokerTransactionManager(ConnectionString);
+            xman.RunInTransaction(x => { tuple = ReceiveFromQueue(x); });
+            if (tuple == null) return null;
+
+            try
+            {
+                xman.RunInTransaction(x => EndConversation(x, tuple.Item1));
+            }
+            catch (Exception e)
+            {
+                Logger.WarnFormat("Unable to end conversation '{0}'. Reason: '{1}'",
+                                  tuple.Item1, e.Message);
+            }
+
+            return tuple.Item2;
         }
     }
 }
