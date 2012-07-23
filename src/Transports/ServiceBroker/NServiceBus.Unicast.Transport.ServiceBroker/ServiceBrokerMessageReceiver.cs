@@ -25,10 +25,16 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
 
         /// <summary>
         /// The default number of messages to be retrieved in a
-        /// single RECEIVE statement. This value will be used
+        /// single RECEIVE command. This value will be used
         /// if none is configured.
         /// </summary>
         private const int DefaultReceiveBatchSize = 50;
+
+        /// <summary>
+        /// Whether to end the conversation after a RECEIVE command. 
+        /// This value will be used if none is configured.
+        /// </summary>
+        private const bool DefaultEndConversationAfterReceive = false;
 
         /// <summary>
         /// The path to the SSB queue the receiver will read from.
@@ -54,7 +60,7 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
 
         /// <summary>
         /// Sets the maximum number of messages to be retrieved in
-        /// a single RECEIVE statement.
+        /// a single RECEIVE command.
         /// </summary>
         private int? _receiveBatchSize;
 
@@ -62,6 +68,17 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
         {
             get { return _receiveBatchSize ?? DefaultReceiveBatchSize; }
             set { _receiveBatchSize = value; }
+        }
+
+        /// <summary>
+        /// Determines whether to end a conversation after a RECEIVE command.
+        /// </summary>
+        private bool? _endConversationAfterReceive;
+
+        public bool? EndConversationAfterReceive
+        {
+            get { return _endConversationAfterReceive ?? DefaultEndConversationAfterReceive; }
+            set{ _endConversationAfterReceive = value; }
         }
 
         private static TransportMessage ExtractTransportMessage(IEnumerable<Message> messages)
@@ -153,14 +170,17 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker
             xman.RunInTransaction(x => { tuple = ReceiveFromQueue(x); });
             if (tuple == null) return null;
 
-            try
+            if (EndConversationAfterReceive.GetValueOrDefault())
             {
-                xman.RunInTransaction(x => EndConversation(x, tuple.Item1));
-            }
-            catch (Exception e)
-            {
-                Logger.WarnFormat("Unable to end conversation '{0}'. Reason: '{1}'",
-                                  tuple.Item1, e.Message);
+                try
+                {
+                    xman.RunInTransaction(x => EndConversation(x, tuple.Item1));
+                }
+                catch (Exception e)
+                {
+                    Logger.WarnFormat("Unable to end conversation '{0}'. Reason: '{1}'",
+                                      tuple.Item1, e.Message);
+                }                
             }
 
             return tuple.Item2;

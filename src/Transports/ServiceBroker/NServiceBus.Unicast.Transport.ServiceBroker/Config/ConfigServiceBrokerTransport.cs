@@ -28,6 +28,7 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker.Config
             SecondsToWaitForMessage(cfg.SecondsToWaitForMessage);
             InitiatorService(cfg.InitiatorService);
             ReceiveBatchSize(cfg.ReceiveBatchSize);
+            EndConversationAfterReceive(cfg.EndConversationAfterReceive);
         }
 
         public ConfigServiceBrokerTransport ReceiveBatchSize(int? value)
@@ -54,6 +55,12 @@ namespace NServiceBus.Unicast.Transport.ServiceBroker.Config
         {
             _senderConfig.ConfigureProperty(t => t.InitiatorService, value);
             _failureConfig.ConfigureProperty(t => t.InitiatorService, value);
+            return this;
+        }
+
+        public ConfigServiceBrokerTransport EndConversationAfterReceive(bool? value)
+        {
+            _receiverConfig.ConfigureProperty(t => t.EndConversationAfterReceive, value);
             return this;
         }
     }

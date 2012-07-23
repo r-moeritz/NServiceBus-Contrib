@@ -18,6 +18,20 @@ namespace NServiceBus.Config
         }
 
         /// <summary>
+        /// Whether to end conversations after receiving messages from SSSB and 
+        /// determining that there are no messages forming part of said 
+        /// conversation left on the input queue.
+        ///
+        /// The default value is false.
+        /// </summary>
+        [ConfigurationProperty("EndConversationAfterReceive", IsRequired = false)]
+        public bool? EndConversationAfterReceive
+        {
+            get { return (bool?) this["EndConversationAfterReceive"]; }
+            set { this["EndConversationAfterReceive"] = value; }
+        }
+
+        /// <summary>
         /// Sets the maximum number of messages to be fetched in a
         /// RECEIVE statement.
         /// 
